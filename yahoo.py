@@ -164,7 +164,7 @@ def archive_files(yga, subdir=None, skip_existing=True):
         set_mtime(fname, path['createdTime'])
 
 
-def archive_photos(yga):
+def archive_photos(yga, skip_existing=True):
     albums = yga.albums()
     n = 0
 
@@ -186,6 +186,9 @@ def archive_photos(yga):
 
                 photoinfo = get_best_photoinfo(photo['photoInfo'])
                 fname = "%d-%s.jpg" % (photo['photoId'], basename(pname))
+                if skip_existing and os.path.isfile(fname):
+                    print "File %r exists, skipping" % fname
+                    continue
                 try:
                     with open(fname, 'wb') as f:
                         yga.download_file(photoinfo['displayURL'], f)
