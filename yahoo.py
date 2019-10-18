@@ -254,6 +254,9 @@ if __name__ == "__main__":
     pe.add_argument('-s', '--no-save', action='store_true',
             help="Don't save email attachments as individual files")
 
+    p.add_argument('--overwrite', action='store_true',
+                   help="Re-download and overwrite existing files and messages")
+
     p.add_argument('group', type=str)
 
     args = p.parse_args()
@@ -268,17 +271,21 @@ if __name__ == "__main__":
 
     if not (args.email or args.files or args.photos or args.database):
         args.email = args.files = args.photos = args.database = True
+    skip_existing = not args.overwrite
 
     with Mkchdir(args.group):
         if args.email:
             with Mkchdir('email'):
-                archive_email(yga, reattach=(not args.no_reattach), save=(not args.no_save))
+                archive_email(yga,
+                              reattach=(not args.no_reattach),
+                              save=(not args.no_save),
+                              skip_existing=skip_existing)
         if args.files:
             with Mkchdir('files'):
-                archive_files(yga)
+                archive_files(yga, skip_existing=skip_existing)
         if args.photos:
             with Mkchdir('photos'):
-                archive_photos(yga)
+                archive_photos(yga, skip_existing=skip_existing)
         if args.database:
             with Mkchdir('databases'):
-                archive_db(yga, args.group)
+                archive_db(yga, args.group, skip_existing=skip_existing)
