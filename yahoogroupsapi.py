@@ -2,6 +2,8 @@ import requests
 from HTMLParser import HTMLParser
 import json
 import functools
+import time
+
 
 class YahooGroupsAPI:
     BASE_URI="https://groups.yahoo.com/api"
@@ -44,14 +46,26 @@ class YahooGroupsAPI:
         # For now check that we 'enough' cookies set.
         return len(self.s.cookies) > 2
 
-    def get_file(self, url):
-        r = self.s.get(url)
+    def _get(self, url, *args, **kw):
+        holdoffs = iter([1.0, 1.5, 2.0, 5.0, 10.0, 10.0])
+
+        r = self.s.get(url, *args, **kw)
+        while r.status_code == 400:
+            holdoff = next(holdoffs, None)
+            if holdoff is None:
+                break
+            print "[Status 400 for %s, retrying]" % (url,)
+            time.sleep(holdoff)
+            r = self.s.get(url, *args, **kw)
         r.raise_for_status()
+        return r
+
+    def get_file(self, url):
+        r = self._get(url)
         return r.content
 
     def download_file(self, url, f, **args):
-        r = self.s.get(url, stream=True, **args)
-        r.raise_for_status()
+        r = self._get(url, stream=True, **args)
         for chunk in r.iter_content(chunk_size=4096):
             f.write(chunk)
 
@@ -71,4 +85,3 @@ class YahooGroupsAPI:
             print "Exception raised on uri: " + r.request.url
             print r.content
             raise e
-
