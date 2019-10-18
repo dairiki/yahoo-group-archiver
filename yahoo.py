@@ -129,7 +129,7 @@ def archive_email(yga, reattach=True, save=True, skip_existing=True):
             f.write(eml.as_string(unixfrom=False))
         set_mtime(msg_fname, message['date'])
 
-def archive_files(yga, subdir=None):
+def archive_files(yga, subdir=None, skip_existing=True):
     if subdir:
         file_json = yga.files(sfpath=subdir)
     else:
@@ -147,6 +147,9 @@ def archive_files(yga, subdir=None):
             name = unescape_html(path['fileName'])
             print "* Fetching file '%s' (%d/%d)" % (name, n, sz)
             fname = basename(name)
+            if skip_existing and os.path.isfile(fname):
+                print "File %r exists, skipping" % fname
+                continue
             with open(fname, 'wb') as f:
                 yga.download_file(path['downloadURL'], f)
 
