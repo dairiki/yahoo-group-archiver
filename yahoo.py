@@ -175,6 +175,8 @@ def archive_photos(yga, skip_existing=True):
         print "* Fetching album '%s' (%d/%d)" % (name, n, albums['total'] - 1)
 
         album_fname = basename(name).replace('.', '_')
+        if not album_fname:
+            album_fname = '_'
         with Mkchdir(album_fname):
             photos = yga.albums(a['albumId'])
             p = 0
