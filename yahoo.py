@@ -58,7 +58,12 @@ def archive_email(yga, reattach=True, save=True, skip_existing=True):
             continue
 
         print "* Fetching raw message #%d of %d" % (id,count)
-        raw_json = yga.messages(id, 'raw')
+        try:
+            raw_json = yga.messages(id, 'raw')
+        except requests.exceptions.HTTPError as err:
+            print "ERROR: can't download attachment: %s" % (err,)
+            continue
+
         mime = unescape_html(raw_json['rawEmail']).encode('latin_1', 'ignore')
 
         eml = email.message_from_string(mime)
