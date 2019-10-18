@@ -115,6 +115,7 @@ def archive_email(yga, reattach=True, save=True, skip_existing=True):
                         fname = "%s-%s" % (id, basename(attach['filename']))
                         with file(fname, 'wb') as f:
                             f.write(atts[attach['filename']])
+                        set_mtime(fname, message['date'])
 
                 if reattach:
                     for part in eml.walk():
