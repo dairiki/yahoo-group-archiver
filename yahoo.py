@@ -139,15 +139,21 @@ def archive_files(yga, subdir=None):
             # Regular file
             name = unescape_html(path['fileName'])
             print "* Fetching file '%s' (%d/%d)" % (name, n, sz)
-            with open(basename(name), 'wb') as f:
+            fname = basename(name)
+            with open(fname, 'wb') as f:
                 yga.download_file(path['downloadURL'], f)
 
         elif path['type'] == 1:
             # Directory
             print "* Fetching directory '%s' (%d/%d)" % (path['fileName'], n, sz)
-            with Mkchdir(basename(path['fileName']).replace('.', '')):
+            fname = basename(path['fileName']).replace('.', '_')
+            with Mkchdir(fname):
                 pathURI = urllib.unquote(path['pathURI'])
                 archive_files(yga, subdir=pathURI)
+
+        atime = time.time()
+        mtime = path['createdTime']
+        os.utime(fname, (atime, mtime))
 
 def archive_photos(yga):
     albums = yga.albums()
