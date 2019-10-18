@@ -195,7 +195,7 @@ def archive_photos(yga):
         set_mtime(album_fname, a['modificationDate'])
 
 
-def archive_db(yga, group):
+def archive_db(yga, group, skip_existing=True):
     json = yga.database()
     n = 0
     nts = len(json['tables'])
@@ -204,6 +204,9 @@ def archive_db(yga, group):
         print "* Downloading database table '%s' (%d/%d)" % (table['name'], n, nts)
 
         name = basename(table['name']) + '.csv'
+        if skip_existing and os.path.isfile(name):
+            print "File %r exists, skipping" % name
+            continue
         uri = "https://groups.yahoo.com/neo/groups/%s/database/%s/records/export?format=csv" % (group, table['tableId'])
         with open(name, 'w') as f:
             yga.download_file(uri, f)
