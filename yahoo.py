@@ -2,6 +2,7 @@
 from yahoogroupsapi import YahooGroupsAPI
 import json
 import email
+from functools import wraps
 import urllib
 import os
 from os.path import basename
@@ -42,6 +43,20 @@ def get_best_photoinfo(photoInfoArr, exclude=[]):
         return best
 
 
+def retry_on_error(f):
+    @wraps(f)
+    def wrapper(*args, **kwds):
+        for i in range(1, TRIES):
+            try:
+                return f(*args, **kwds)
+            except requests.exceptions.HTTPError as err:
+                print "ERROR: %s %r %r failed, try %d: %s" % (
+                    f.__name__, args, kwds, i, err)
+                time.sleep(HOLDOFF)
+        return f(*args, **kwds)
+    return wrapper
+
+
 def archive_email(yga, reattach=True, save=True):
     msg_json = yga.messages()
     count = msg_json['totalRecords']
@@ -53,7 +68,7 @@ def archive_email(yga, reattach=True, save=True):
         id = message['messageId']
 
         print "* Fetching raw message #%d of %d" % (id,count)
-        raw_json = yga.messages(id, 'raw')
+        raw_json = retry_on_error(yga.get_json)('messages', id, 'raw')
         mime = unescape_html(raw_json['rawEmail']).encode('latin_1', 'ignore')
 
         eml = email.message_from_string(mime)
