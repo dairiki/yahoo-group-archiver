@@ -100,7 +100,7 @@ def archive_email(yga, reattach=True, save=True, skip_existing=True):
                                 # yahoo says no. exclude this size and try for another.
                                 print "ERROR downloading '%s' variant: %s" % (
                                     photoinfo['photoType'], err)
-                                #exclude.append(photoinfo['photoType'])
+                                exclude.append(photoinfo['photoType'])
 
                         # if we failed, try the next attachment
                         if not ok:
