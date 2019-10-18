@@ -207,6 +207,7 @@ def archive_db(yga, group):
         uri = "https://groups.yahoo.com/neo/groups/%s/database/%s/records/export?format=csv" % (group, table['tableId'])
         with open(name, 'w') as f:
             yga.download_file(uri, f)
+        set_mtime(name, table['dateLastModified'])
 
 class Mkchdir:
     d = ""
