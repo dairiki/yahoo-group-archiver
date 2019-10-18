@@ -41,14 +41,19 @@ def set_mtime(path, mtime):
     os.utime(path, (atime, mtime))
 
 
+def get_messages(yga, batch=500):
+    msgs = yga.messages(count=batch)
+    print "Group has %d messages" % msgs['totalRecords']
+    for msg in msgs['messages']:
+        yield msg
+    while msgs['prevPageStart'] > 0:
+        msgs = yga.messages(start=msgs['prevPageStart'], count=batch)
+        for msg in msgs['messages']:
+            yield msg
+
+
 def archive_email(yga, reattach=True, save=True, skip_existing=True):
-    msg_json = yga.messages()
-    count = msg_json['totalRecords']
-
-    msg_json = yga.messages(count=count)
-    print "Group has %s messages, got %s" % (count, msg_json['numRecords'])
-
-    for message in msg_json['messages']:
+    for message in get_messages(yga):
         id = message['messageId']
         msg_fname = "%s.eml" % (id,)
 
@@ -56,7 +61,7 @@ def archive_email(yga, reattach=True, save=True, skip_existing=True):
             print "* Message %d already downloaded, skipping" % id
             continue
 
-        print "* Fetching raw message #%d of %d" % (id,count)
+        print "* Fetching raw message #%d" % id
         try:
             raw_json = yga.messages(id, 'raw')
         except requests.exceptions.HTTPError as err:
