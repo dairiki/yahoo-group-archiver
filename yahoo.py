@@ -174,7 +174,8 @@ def archive_photos(yga):
         # Yahoo has an off-by-one error in the album count...
         print "* Fetching album '%s' (%d/%d)" % (name, n, albums['total'] - 1)
 
-        with Mkchdir(basename(name).replace('.', '')):
+        album_fname = basename(name).replace('.', '_')
+        with Mkchdir(album_fname):
             photos = yga.albums(a['albumId'])
             p = 0
 
@@ -185,11 +186,13 @@ def archive_photos(yga):
 
                 photoinfo = get_best_photoinfo(photo['photoInfo'])
                 fname = "%d-%s.jpg" % (photo['photoId'], basename(pname))
-                with open(fname, 'wb') as f:
-                    try:
+                try:
+                    with open(fname, 'wb') as f:
                         yga.download_file(photoinfo['displayURL'], f)
-                    except requests.exceptions.HTTPError as err:
-                        print "HTTP error: %s" % (err,)
+                    set_mtime(fname, photo['creationDate'])
+                except requests.exceptions.HTTPError as err:
+                    print "HTTP error: %s" % (err,)
+        set_mtime(album_fname, a['modificationDate'])
 
 
 def archive_db(yga, group):
