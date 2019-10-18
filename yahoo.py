@@ -57,7 +57,7 @@ def retry_on_error(f):
     return wrapper
 
 
-def archive_email(yga, reattach=True, save=True):
+def archive_email(yga, reattach=True, save=True, skip_existing=True):
     msg_json = yga.messages()
     count = msg_json['totalRecords']
 
@@ -66,6 +66,11 @@ def archive_email(yga, reattach=True, save=True):
 
     for message in msg_json['messages']:
         id = message['messageId']
+        msg_fname = "%s.eml" % (id,)
+
+        if skip_existing and os.path.isfile(msg_fname):
+            print "* Message %d already downloaded, skipping" % id
+            continue
 
         print "* Fetching raw message #%d of %d" % (id,count)
         raw_json = retry_on_error(yga.get_json)('messages', id, 'raw')
@@ -136,8 +141,7 @@ def archive_email(yga, reattach=True, save=True):
                             email.encoders.encode_base64(part)
                             del atts[fname]
 
-        fname = "%s.eml" % (id,)
-        with file(fname, 'w') as f:
+        with file(msg_fname, 'w') as f:
             f.write(eml.as_string(unixfrom=False))
 
 def archive_files(yga, subdir=None):
