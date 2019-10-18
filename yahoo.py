@@ -75,6 +75,9 @@ def archive_email(yga, reattach=True, save=True):
                             except requests.exceptions.HTTPError as err:
                                 print "ERROR: can't download attachment, try %d: %s" % (i, err)
                                 time.sleep(HOLDOFF)
+                        else:
+                            print "ERROR: failed to download attachment: %s" % (attach['filename'],)
+                            continue
 
                     elif 'photoInfo' in attach:
                         # keep retrying until we find the largest image size we can download
