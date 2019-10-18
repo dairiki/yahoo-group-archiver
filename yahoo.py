@@ -36,6 +36,11 @@ def get_best_photoinfo(photoInfoArr, exclude=[]):
         return best
 
 
+def set_mtime(path, mtime):
+    atime = time.time()
+    os.utime(path, (atime, mtime))
+
+
 def archive_email(yga, reattach=True, save=True, skip_existing=True):
     msg_json = yga.messages()
     count = msg_json['totalRecords']
@@ -121,6 +126,7 @@ def archive_email(yga, reattach=True, save=True, skip_existing=True):
 
         with file(msg_fname, 'w') as f:
             f.write(eml.as_string(unixfrom=False))
+        set_mtime(msg_fname, message['date'])
 
 def archive_files(yga, subdir=None):
     if subdir:
@@ -151,9 +157,8 @@ def archive_files(yga, subdir=None):
                 pathURI = urllib.unquote(path['pathURI'])
                 archive_files(yga, subdir=pathURI)
 
-        atime = time.time()
-        mtime = path['createdTime']
-        os.utime(fname, (atime, mtime))
+        set_mtime(fname, path['createdTime'])
+
 
 def archive_photos(yga):
     albums = yga.albums()
