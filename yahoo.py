@@ -145,7 +145,7 @@ def archive_files(yga, subdir=None, skip_existing=True):
         if path['type'] == 0:
             # Regular file
             name = unescape_html(path['fileName'])
-            print "* Fetching file '%s' (%d/%d)" % (name, n, sz)
+            print "* Fetching file %r (%d/%d)" % (name, n, sz)
             fname = basename(name)
             if skip_existing and os.path.isfile(fname):
                 print "File %r exists, skipping" % fname
