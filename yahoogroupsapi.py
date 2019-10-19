@@ -50,7 +50,7 @@ class YahooGroupsAPI:
         holdoffs = iter([1.0, 1.5, 2.0, 5.0, 10.0, 10.0, 10.0])
 
         r = self.s.get(url, *args, **kw)
-        while r.status_code in (400, 500):
+        while r.status_code in (400, 500, 503):
             holdoff = next(holdoffs, None)
             if holdoff is None:
                 break
