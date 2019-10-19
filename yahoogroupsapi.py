@@ -47,14 +47,14 @@ class YahooGroupsAPI:
         return len(self.s.cookies) > 2
 
     def _get(self, url, *args, **kw):
-        holdoffs = iter([1.0, 1.5, 2.0, 5.0, 10.0, 10.0])
+        holdoffs = iter([1.0, 1.5, 2.0, 5.0, 10.0, 10.0, 10.0])
 
         r = self.s.get(url, *args, **kw)
-        while r.status_code == 400:
+        while r.status_code in (400, 500):
             holdoff = next(holdoffs, None)
             if holdoff is None:
                 break
-            print "[Status 400 for %s, retrying]" % (url,)
+            print "[Status %d for %s, retrying]" % (r.status_code, url)
             time.sleep(holdoff)
             r = self.s.get(url, *args, **kw)
         r.raise_for_status()
@@ -75,7 +75,7 @@ class YahooGroupsAPI:
         uri_parts = uri_parts + map(str, parts)
         uri = "/".join(uri_parts)
 
-        r = self.s.get(uri, params=opts, allow_redirects=False, timeout=10)
+        r = self._get(uri, params=opts, allow_redirects=False, timeout=10)
         try:
             r.raise_for_status()
             if r.status_code != 200:
